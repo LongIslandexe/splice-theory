@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Matrix Falling Code (Slowed Speed)</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <script>
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const fontSize = 16;
+    const columns = Math.floor(canvas.width / fontSize);
+
+    // Instead of a single array of random characters, define:
+    const randomChars = "アカサタナハマヤラワabcdefghijklmnopqrstuvwxyz0123456789#$%&*+-=~".split("");
+    const specialWord = "longislandexe";
+
+    // Each column can either be "random" or "special"
+    const columnModes = [];
+    for (let i = 0; i < columns; i++) {
+      // Randomly 5% of columns will be the special word
+      columnModes[i] = Math.random() < 0.05 ? "special" : "random";
+    }
+
+    // For special columns, keep an index of which letter is next
+    const specialIndices = new Array(columns).fill(0);
+
+    // Y positions (drops) for each column
+    // Start all near or above the top with random negative values
+    const drops = [];
+    for (let x = 0; x < columns; x++) {
+      drops[x] = Math.random() * -50;
+    }
+
+    function draw() {
+      // Darken background slightly
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Green text
+      ctx.fillStyle = "#0F0";
+      ctx.font = fontSize + "px monospace";
+
+      // Draw characters
+      for (let i = 0; i < columns; i++) {
+        let char;
+        if (columnModes[i] === "special") {
+          char = specialWord[specialIndices[i]];
+          // Next character in "longislandexe"
+          specialIndices[i] = (specialIndices[i] + 1) % specialWord.length;
+        } else {
+          // Random character
+          char = randomChars[Math.floor(Math.random() * randomChars.length)];
+        }
+
+        // Draw the character
+        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+        // If it's gone off screen, reset occasionally
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        // ↓↓ Here's where we slow down the vertical movement ↓↓
+        // Original: drops[i]++;
+        // Slower: add 0.3 (or 0.5, etc.) each frame
+        drops[i] += 0.3;
+      }
+    }
+
+    // ↓↓ Change this interval to call draw() less frequently ↓↓
+    // Original: setInterval(draw, 33); // ~30 fps
+    // Slower: let's call it ~15 fps:
+    setInterval(draw, 66);
+
+    // Handle window resizing
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
